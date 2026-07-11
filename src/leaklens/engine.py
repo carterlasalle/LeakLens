@@ -42,7 +42,10 @@ class Scanner:
                 continue
             for match in rule.pattern.finditer(text):
                 start, end = match.span(rule.secret_group)
-                if any(start < previous_end and end > previous_start for previous_start, previous_end in occupied):
+                if any(
+                    start < previous_end and end > previous_start
+                    for previous_start, previous_end in occupied
+                ):
                     continue
                 secret = match.group(rule.secret_group)
                 if not rule.accepts(secret):
@@ -59,7 +62,16 @@ class Scanner:
                 if line_index > 0:
                     previous_start = line_starts[line_index - 1]
                     previous_line = text[previous_start : line_start - 1]
-                if "leaklens:allow" in line_text.casefold() or "leaklens:allow" in previous_line.casefold():
+                next_line = ""
+                if line_end < len(text):
+                    next_end = text.find("\n", line_end + 1)
+                    if next_end == -1:
+                        next_end = len(text)
+                    next_line = text[line_end + 1 : next_end]
+                if any(
+                    "leaklens:allow" in candidate.casefold()
+                    for candidate in (previous_line, line_text, next_line)
+                ):
                     result.stats.findings_suppressed += 1
                     continue
                 secret_fingerprint = fingerprint(rule.id, secret)

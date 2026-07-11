@@ -16,7 +16,9 @@ class RobustnessTests(unittest.TestCase):
         alphabet = string.printable + "éø中🔐\ud800"
         scanner = Scanner(max_findings=100)
         for index in range(2_000):
-            text = "".join(randomizer.choice(alphabet) for _ in range(randomizer.randrange(0, 1024)))
+            text = "".join(
+                randomizer.choice(alphabet) for _ in range(randomizer.randrange(0, 1024))
+            )
             result = scanner.scan_text(text, path=f"fuzz-{index}")
             self.assertLessEqual(len(result.findings), 100)
 

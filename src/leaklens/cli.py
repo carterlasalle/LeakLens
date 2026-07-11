@@ -16,11 +16,10 @@ from .config import Config, ConfigError, load_config
 from .engine import Scanner
 from .filesystem import FileScanner
 from .hooks import install_hook, uninstall_hook
-from .models import ScanResult, Severity
+from .models import Severity
 from .render import render, render_rules
 from .repository import GitError, RepositoryScanner
 from .rules import Rule, builtin_rules
-
 
 FORMATS = ("table", "json", "jsonl", "csv", "sarif")
 
@@ -41,8 +40,12 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("paths", nargs="*", default=["."])
     source = scan.add_mutually_exclusive_group()
     source.add_argument("--repo", action="store_true", help="scan Git tracked and untracked files")
-    source.add_argument("--staged", action="store_true", help="scan only lines added to the Git index")
-    source.add_argument("--history", action="store_true", help="scan first appearances across Git history")
+    source.add_argument(
+        "--staged", action="store_true", help="scan only lines added to the Git index"
+    )
+    source.add_argument(
+        "--history", action="store_true", help="scan first appearances across Git history"
+    )
     source.add_argument("--stdin", action="store_true", help="scan standard input")
     scan.add_argument("--stdin-filename", default="<stdin>")
     scan.add_argument("--since", help="history date accepted by git, e.g. '2025-01-01'")
@@ -53,7 +56,9 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--no-color", action="store_true")
     scan.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
 
-    baseline = commands.add_parser("baseline", help="manage fingerprint-only legacy finding baselines")
+    baseline = commands.add_parser(
+        "baseline", help="manage fingerprint-only legacy finding baselines"
+    )
     baseline_commands = baseline.add_subparsers(dest="baseline_command", required=True)
     create = baseline_commands.add_parser("create", help="scan and write a new baseline")
     create.add_argument("paths", nargs="*", default=["."])
@@ -92,7 +97,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"Installed {install_hook(force=args.force)}")
             else:
                 removed = uninstall_hook()
-                print("Removed LeakLens pre-commit hook" if removed else "No LeakLens hook installed")
+                print(
+                    "Removed LeakLens pre-commit hook" if removed else "No LeakLens hook installed"
+                )
             return 0
         if args.command == "init":
             return _init_config(force=args.force)
@@ -111,8 +118,12 @@ def _scan_command(args: argparse.Namespace, config: Config, rules: tuple[Rule, .
     baseline_path = args.baseline or config.baseline_path
     if not args.no_baseline and Path(baseline_path).is_file():
         allowed.update(load_baseline(baseline_path).fingerprints)
-    minimum = Severity.parse(args.minimum_severity) if args.minimum_severity else config.minimum_severity
-    scanner = Scanner(rules=rules, minimum_severity=minimum, allowed_fingerprints=frozenset(allowed))
+    minimum = (
+        Severity.parse(args.minimum_severity) if args.minimum_severity else config.minimum_severity
+    )
+    scanner = Scanner(
+        rules=rules, minimum_severity=minimum, allowed_fingerprints=frozenset(allowed)
+    )
     files = FileScanner(
         scanner,
         excludes=config.excludes,
@@ -148,18 +159,24 @@ def _scan_command(args: argparse.Namespace, config: Config, rules: tuple[Rule, .
 def _baseline_command(args: argparse.Namespace, config: Config, rules: tuple[Rule, ...]) -> int:
     if args.baseline_command == "show":
         baseline = load_baseline(args.path)
-        print(f"Schema: 1\nGenerated: {baseline.generated_at}\nFingerprints: {len(baseline.fingerprints)}")
+        print(
+            f"Schema: 1\nGenerated: {baseline.generated_at}\nFingerprints: {len(baseline.fingerprints)}"
+        )
         return 0
     destination = Path(args.output)
     if destination.exists() and not args.force:
         raise FileExistsError(f"{destination} exists; pass --force to replace it")
     scanner = Scanner(rules=rules, minimum_severity=config.minimum_severity)
-    result = FileScanner(scanner, config.excludes, config.max_file_size, config.follow_symlinks, config.scan_hidden).scan_paths(args.paths)
+    result = FileScanner(
+        scanner, config.excludes, config.max_file_size, config.follow_symlinks, config.scan_hidden
+    ).scan_paths(args.paths)
     if result.errors:
         raise OSError("; ".join(result.errors))
     baseline = Baseline.from_findings(result.findings)
     save_baseline(destination, baseline)
-    print(f"Wrote {destination} with {len(baseline.fingerprints)} fingerprint(s); no secret values stored")
+    print(
+        f"Wrote {destination} with {len(baseline.fingerprints)} fingerprint(s); no secret values stored"
+    )
     return 0
 
 
@@ -174,10 +191,18 @@ def _init_config(*, force: bool) -> int:
 
 def _doctor(config: Config, rules: tuple[Rule, ...]) -> int:
     checks = [
-        ("Python", f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}", sys.version_info >= (3, 11)),
+        (
+            "Python",
+            f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+            sys.version_info >= (3, 11),
+        ),
         ("Git", shutil.which("git") or "not found", shutil.which("git") is not None),
         ("Configuration", f"{len(rules)} active rules", True),
-        ("Baseline", config.baseline_path if Path(config.baseline_path).is_file() else "not configured", True),
+        (
+            "Baseline",
+            config.baseline_path if Path(config.baseline_path).is_file() else "not configured",
+            True,
+        ),
         ("Network", "not used", True),
     ]
     for name, detail, healthy in checks:
@@ -186,7 +211,12 @@ def _doctor(config: Config, rules: tuple[Rule, ...]) -> int:
 
 
 def _color_enabled(args: argparse.Namespace) -> bool:
-    return not args.no_color and sys.stdout.isatty() and os.environ.get("NO_COLOR") is None and not args.output
+    return (
+        not args.no_color
+        and sys.stdout.isatty()
+        and os.environ.get("NO_COLOR") is None
+        and not args.output
+    )
 
 
 def _rule_dict(rule: Rule) -> dict[str, object]:
@@ -233,4 +263,3 @@ path = ".leaklens-baseline.json"
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

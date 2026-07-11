@@ -31,7 +31,11 @@ class RepositoryScanner:
 
     def scan_worktree(self) -> ScanResult:
         raw = self._git("ls-files", "-z", "--cached", "--others", "--exclude-standard")
-        paths = [self.root / item.decode("utf-8", errors="surrogateescape") for item in raw.split(b"\0") if item]
+        paths = [
+            self.root / item.decode("utf-8", errors="surrogateescape")
+            for item in raw.split(b"\0")
+            if item
+        ]
         return self.file_scanner.scan_paths(paths)
 
     def scan_staged(self) -> ScanResult:
@@ -132,15 +136,16 @@ class RepositoryScanner:
                 ["git", "-c", "core.quotepath=false", *arguments],
                 cwd=self.root,
                 check=False,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 timeout=self.timeout,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise GitError(f"git {' '.join(arguments)} failed: {exc}") from exc
         if process.returncode:
             message = process.stderr.decode("utf-8", errors="replace").strip()
-            raise GitError(f"git {' '.join(arguments)} failed: {message or f'exit {process.returncode}'}")
+            raise GitError(
+                f"git {' '.join(arguments)} failed: {message or f'exit {process.returncode}'}"
+            )
         return process.stdout
 
 

@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible LeakLens defect without exposing a real credential
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: Never paste a live or incident-derived credential. Assemble a synthetic value from parts.
+  - type: input
+    id: version
+    attributes:
+      label: LeakLens and Python versions
+      placeholder: LeakLens 0.1.0, Python 3.13.5
+    validations:
+      required: true
+  - type: dropdown
+    id: adapter
+    attributes:
+      label: Source adapter
+      options: [filesystem, worktree, staged, history, stdin]
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Safe reproduction
+      description: Include command, synthetic input construction, expected behavior, and redacted output.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: This report contains no live credential, private repository content, or sensitive path.
+          required: true
+

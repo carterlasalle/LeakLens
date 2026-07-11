@@ -46,7 +46,9 @@ tags = ["acme", "token"]
 
 class BaselineTests(unittest.TestCase):
     def test_round_trips_fingerprints_without_secrets(self) -> None:
-        result = Scanner().scan_text('password = "Q9!wE8@rT7#y"')  # leaklens:allow -- synthetic test fixture
+        result = Scanner().scan_text(
+            'password = "Q9!wE8@rT7#y"'
+        )  # leaklens:allow -- synthetic test fixture
         baseline = Baseline.from_findings(result.findings)
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "baseline.json"

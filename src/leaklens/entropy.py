@@ -35,7 +35,9 @@ def looks_placeholder(value: str) -> bool:
     normalized = value.strip("'\" <>[]{}()").casefold()
     if normalized in _PLACEHOLDERS:
         return True
-    return any(marker in normalized for marker in ("example", "placeholder", "your_", "xxxx", "dummy"))
+    return any(
+        marker in normalized for marker in ("example", "placeholder", "your_", "xxxx", "dummy")
+    )
 
 
 def character_classes(value: str) -> int:
@@ -47,4 +49,3 @@ def character_classes(value: str) -> int:
             any(not char.isalnum() for char in value),
         )
     )
-

@@ -17,7 +17,9 @@ class CliTests(unittest.TestCase):
     def test_scan_exit_codes_and_json_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "app.py"
-            path.write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
+            path.write_text(
+                'password = "Q9!wE8@rT7#y"', encoding="utf-8"
+            )  # leaklens:allow -- synthetic test fixture
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
                 code = main(["--no-baseline", "scan", str(path), "--format", "json"])
@@ -38,9 +40,13 @@ class CliTests(unittest.TestCase):
             root = Path(directory)
             source = root / "app.py"
             baseline = root / "baseline.json"
-            source.write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
+            source.write_text(
+                'password = "Q9!wE8@rT7#y"', encoding="utf-8"
+            )  # leaklens:allow -- synthetic test fixture
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(main(["baseline", "create", str(source), "--output", str(baseline)]), 0)
+                self.assertEqual(
+                    main(["baseline", "create", str(source), "--output", str(baseline)]), 0
+                )
                 code = main(["--baseline", str(baseline), "scan", str(source)])
             self.assertEqual(code, 0)
 
@@ -55,7 +61,9 @@ class HookTests(unittest.TestCase):
     def test_installs_executable_and_only_uninstalls_managed_hook(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            subprocess.run(["git", "init", "-b", "main"], cwd=root, check=True, stdout=subprocess.DEVNULL)
+            subprocess.run(
+                ["git", "init", "-b", "main"], cwd=root, check=True, stdout=subprocess.DEVNULL
+            )
             hook = install_hook(root)
             self.assertIn(MARKER, hook.read_text(encoding="utf-8"))
             if os.name != "nt":
@@ -66,7 +74,9 @@ class HookTests(unittest.TestCase):
     def test_refuses_to_replace_unmanaged_hook(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            subprocess.run(["git", "init", "-b", "main"], cwd=root, check=True, stdout=subprocess.DEVNULL)
+            subprocess.run(
+                ["git", "init", "-b", "main"], cwd=root, check=True, stdout=subprocess.DEVNULL
+            )
             hook = root / ".git" / "hooks" / "pre-commit"
             hook.write_text("#!/bin/sh\necho existing\n", encoding="utf-8")
             with self.assertRaisesRegex(FileExistsError, "reviewing"):

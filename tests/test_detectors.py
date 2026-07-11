@@ -17,7 +17,10 @@ class DetectorCatalogTests(unittest.TestCase):
             "stripe-live-key": "sk_" + "live_" + "A1b2C3d4E5f6G7h8I9j0K1",
             "openai-api-key": "sk-" + "A1b2C3d4_E5f6G7h8-I9j0K1l2",
             "anthropic-api-key": "sk-ant-" + "A1b2C3d4_E5f6G7h8-I9j0K1l2",
-            "sendgrid-api-key": "SG." + "A1b2C3d4E5f6G7h8" + "." + "I9j0K1l2M3n4O5p6Q7r8S9t0U1v2W3x4",
+            "sendgrid-api-key": "SG."
+            + "A1b2C3d4E5f6G7h8"
+            + "."
+            + "I9j0K1l2M3n4O5p6Q7r8S9t0U1v2W3x4",
             "npm-access-token": "npm_" + "A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8"[:36],
             "pypi-upload-token": "pypi-" + "A1b2C3d4_E5f6G7h8-I9j0K1l2M3n4O5p6Q7r8S9t0" * 2,
             "jwt": "eyJ" + "A1b2C3d4" + "." + "E5f6G7h8" + "." + "I9j0K1l2",

@@ -30,9 +30,15 @@ class EngineTests(unittest.TestCase):
 
     def test_inline_and_previous_line_allow_comments_suppress(self) -> None:
         first = Scanner().scan_text('password = "C0mpl3x-not-real"  # leaklens:allow\n')
-        second = Scanner().scan_text('# leaklens:allow -- documented fixture\npassword = "C0mpl3x-not-real"\n')
+        second = Scanner().scan_text(
+            '# leaklens:allow -- documented fixture\npassword = "C0mpl3x-not-real"\n'
+        )
+        third = Scanner().scan_text(
+            'password = "C0mpl3x-not-real"\n# leaklens:allow -- formatted call\n'
+        )
         self.assertFalse(first.findings)
         self.assertFalse(second.findings)
+        self.assertFalse(third.findings)
 
     def test_baseline_fingerprint_suppresses_exact_finding(self) -> None:
         text = 'secret = "aB3!cD4@eF5#"'  # leaklens:allow -- synthetic test fixture
@@ -47,7 +53,9 @@ class EngineTests(unittest.TestCase):
         self.assertFalse(result.findings)
 
     def test_finding_limit_stops_unbounded_result_growth(self) -> None:
-        text = "\n".join(f'password = "A{i:04d}!bB2@cC3#d"' for i in range(100))  # leaklens:allow -- synthetic test fixture
+        text = "\n".join(
+            f'password = "A{i:04d}!bB2@cC3#d"' for i in range(100)
+        )  # leaklens:allow -- synthetic test fixture
         result = Scanner(max_findings=7).scan_text(text)
         self.assertEqual(len(result.findings), 7)
         self.assertIn("finding limit 7", result.errors[0])

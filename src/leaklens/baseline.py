@@ -61,4 +61,3 @@ def save_baseline(path: str | Path, baseline: Baseline) -> None:
 
 def _is_fingerprint(value: str) -> bool:
     return len(value) == 40 and all(char in "0123456789abcdef" for char in value)
-

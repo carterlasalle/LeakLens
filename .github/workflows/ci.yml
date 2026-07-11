@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }} · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11", "3.12", "3.13"]
+        include:
+          - os: macos-latest
+            python: "3.13"
+          - os: windows-latest
+            python: "3.13"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Install locked environment
+        run: uv sync --locked --extra dev
+      - name: Run unit and integration tests
+        run: uv run python -m unittest discover -v
+      - name: Exercise installed CLI
+        run: |
+          uv run leaklens --version
+          uv run leaklens doctor
+          uv run leaklens rules --format json
+          uv run leaklens --no-baseline scan --repo --format json
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --locked --extra dev
+      - name: Format and lint
+        run: |
+          uv run ruff format --check .
+          uv run ruff check .
+      - name: Strict type check
+        run: uv run mypy src
+      - name: Coverage gate
+        run: uv run pytest --cov=leaklens --cov-report=term-missing --cov-fail-under=85
+      - name: Build source and wheel
+        run: uv build
+      - name: Smoke-test built wheel in isolation
+        shell: bash
+        run: |
+          uv venv wheel-test
+          uv pip install --python wheel-test dist/*.whl
+          wheel-test/bin/python -m leaklens --version
+      - name: Run performance regression workload
+        run: uv run python benchmarks/benchmark_scan.py
+
+  action-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run the repository's composite action
+        uses: ./
+        with:
+          mode: repo
+          format: sarif
+          output: leaklens.sarif
+      - name: Validate SARIF was created
+        run: test -s leaklens.sarif
+

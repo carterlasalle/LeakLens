@@ -8,9 +8,8 @@ import json
 from collections import Counter
 from typing import Any
 
-from .models import Finding, ScanResult, Severity
+from .models import ScanResult, Severity
 from .rules import Rule
-
 
 _COLORS = {
     Severity.LOW: "\x1b[36m",
@@ -21,11 +20,15 @@ _COLORS = {
 _RESET = "\x1b[0m"
 
 
-def render(result: ScanResult, format_name: str, rules: tuple[Rule, ...], *, color: bool = False) -> str:
+def render(
+    result: ScanResult, format_name: str, rules: tuple[Rule, ...], *, color: bool = False
+) -> str:
     if format_name == "json":
         return json.dumps(result.to_dict(), indent=2, sort_keys=True)
     if format_name == "jsonl":
-        return "\n".join(json.dumps(finding.to_dict(), sort_keys=True) for finding in result.findings)
+        return "\n".join(
+            json.dumps(finding.to_dict(), sort_keys=True) for finding in result.findings
+        )
     if format_name == "csv":
         return render_csv(result)
     if format_name == "sarif":
@@ -48,7 +51,9 @@ def render_table(result: ScanResult, *, color: bool = False) -> str:
         rows.append([severity, finding.rule_id, location, finding.redacted, finding.message])
     output = _table(["SEVERITY", "RULE", "LOCATION", "VALUE", "DETAIL"], rows)
     counts = Counter(finding.severity.label() for finding in result.findings)
-    summary = ", ".join(f"{counts[name]} {name}" for name in ("critical", "high", "medium", "low") if counts[name])
+    summary = ", ".join(
+        f"{counts[name]} {name}" for name in ("critical", "high", "medium", "low") if counts[name]
+    )
     footer = f"Found {len(result.findings)} potential secret(s): {summary}"
     suppressed = result.stats.findings_suppressed
     if suppressed:
@@ -109,8 +114,15 @@ def render_sarif(result: ScanResult, rules: tuple[Rule, ...]) -> dict[str, Any]:
                 "name": _sarif_name(rule_id),
                 "shortDescription": {"text": rule.title if rule else finding.title},
                 "fullDescription": {"text": rule.message if rule else finding.message},
-                "defaultConfiguration": {"level": _sarif_level(rule.severity if rule else finding.severity)},
-                "properties": {"tags": list(rule.tags if rule else finding.tags), "security-severity": str(_security_score(rule.severity if rule else finding.severity))},
+                "defaultConfiguration": {
+                    "level": _sarif_level(rule.severity if rule else finding.severity)
+                },
+                "properties": {
+                    "tags": list(rule.tags if rule else finding.tags),
+                    "security-severity": str(
+                        _security_score(rule.severity if rule else finding.severity)
+                    ),
+                },
             }
         )
     results = []
@@ -132,7 +144,11 @@ def render_sarif(result: ScanResult, rules: tuple[Rule, ...]) -> dict[str, Any]:
             "message": {"text": f"{finding.message}. Redacted value: {finding.redacted}"},
             "locations": [location],
             "partialFingerprints": {"leakLensSecretFingerprint/v1": finding.fingerprint},
-            "properties": {"confidence": finding.confidence, "entropy": finding.entropy, "secretLength": finding.secret_length},
+            "properties": {
+                "confidence": finding.confidence,
+                "entropy": finding.entropy,
+                "secretLength": finding.secret_length,
+            },
         }
         if finding.location.commit:
             result_item["properties"]["commit"] = finding.location.commit
@@ -151,7 +167,15 @@ def render_sarif(result: ScanResult, rules: tuple[Rule, ...]) -> dict[str, Any]:
                     }
                 },
                 "results": results,
-                "invocations": [{"executionSuccessful": not result.errors, "toolExecutionNotifications": [{"message": {"text": error}, "level": "error"} for error in result.errors]}],
+                "invocations": [
+                    {
+                        "executionSuccessful": not result.errors,
+                        "toolExecutionNotifications": [
+                            {"message": {"text": error}, "level": "error"}
+                            for error in result.errors
+                        ],
+                    }
+                ],
             }
         ],
     }
@@ -175,11 +199,15 @@ def _table(headers: list[str], rows: list[list[str]]) -> str:
         rendered = []
         for index, value in enumerate(values):
             visible = _visible_length(value)
-            clipped = value if visible <= widths[index] else value[: max(1, widths[index] - 1)] + "…"
+            clipped = (
+                value if visible <= widths[index] else value[: max(1, widths[index] - 1)] + "…"
+            )
             rendered.append(clipped + " " * max(0, widths[index] - _visible_length(clipped)))
         return "  ".join(rendered).rstrip()
 
-    return "\n".join([line(headers), line(["─" * width for width in widths]), *(line(row) for row in rows)])
+    return "\n".join(
+        [line(headers), line(["─" * width for width in widths]), *(line(row) for row in rows)]
+    )
 
 
 def _visible_length(value: str) -> int:
@@ -194,9 +222,16 @@ def _sarif_name(rule_id: str) -> str:
 
 
 def _sarif_level(severity: Severity) -> str:
-    return "error" if severity >= Severity.HIGH else "warning" if severity == Severity.MEDIUM else "note"
+    return (
+        "error"
+        if severity >= Severity.HIGH
+        else "warning"
+        if severity == Severity.MEDIUM
+        else "note"
+    )
 
 
 def _security_score(severity: Severity) -> float:
-    return {Severity.LOW: 3.0, Severity.MEDIUM: 5.5, Severity.HIGH: 8.0, Severity.CRITICAL: 9.5}[severity]
-
+    return {Severity.LOW: 3.0, Severity.MEDIUM: 5.5, Severity.HIGH: 8.0, Severity.CRITICAL: 9.5}[
+        severity
+    ]

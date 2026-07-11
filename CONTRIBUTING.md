@@ -7,8 +7,8 @@ LeakLens is security tooling; detector changes require evidence and adversarial 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e '.[dev]'
-python -m unittest discover -v
+uv sync --extra dev
+uv run python -m unittest discover -v
 ```
 
 ## Detector checklist
@@ -28,14 +28,13 @@ hashes copied from incidents, or provider validation responses.
 Before committing:
 
 ```bash
-ruff format .
-ruff check .
-mypy src
-pytest --cov=leaklens --cov-report=term-missing
-python -m build
-leaklens scan --repo
+uv run ruff format .
+uv run ruff check .
+uv run mypy src
+uv run pytest --cov=leaklens --cov-report=term-missing
+uv build
+uv run leaklens scan --repo
 ```
 
 Commit messages use `type: imperative description`, such as
 `fix: reject documented AWS example identifiers`.
-

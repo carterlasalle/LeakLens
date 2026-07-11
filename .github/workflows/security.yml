@@ -1,0 +1,50 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "31 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - name: Export the complete locked dependency graph
+        run: uv export --locked --all-extras --no-emit-project --output-file requirements-audit.txt
+      - name: Audit locked dependencies
+        run: uvx pip-audit --requirement requirements-audit.txt
+      - name: Prove repository self-scan is clean
+        run: |
+          uv sync --locked
+          uv run leaklens --no-baseline scan --repo --format sarif --output leaklens.sarif
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leaklens-security-report
+          path: leaklens.sarif
+          if-no-files-found: error
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+

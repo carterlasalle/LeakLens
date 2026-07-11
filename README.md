@@ -163,7 +163,8 @@ custom rules are combined; configured fingerprints and baseline fingerprints are
 
 ## Suppression and baselines
 
-Suppress an intentional fixture on the same or immediately preceding line:
+Suppress an intentional fixture on the same or immediately adjacent line (adjacency supports
+formatter-moved end-of-call comments):
 
 ```python
 # leaklens:allow -- synthetically generated documentation fixture
@@ -264,13 +265,13 @@ Detailed containment guidance is in [docs/incident-response.md](docs/incident-re
 ## Development
 
 ```bash
-python -m pip install -e '.[dev]'
-python -m unittest discover -v
-ruff check .
-ruff format --check .
-mypy src
-pytest --cov=leaklens --cov-report=term-missing
-python -m build
+uv sync --extra dev
+uv run python -m unittest discover -v
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src
+uv run pytest --cov=leaklens --cov-report=term-missing
+uv build
 ```
 
 The test suite covers every detector, false-positive fixtures, every output redaction contract,
@@ -290,4 +291,3 @@ tool offline, predictable, least-privileged, and safe to run on sensitive reposi
 ## License
 
 MIT © Carter LaSalle. See [LICENSE](LICENSE).
-

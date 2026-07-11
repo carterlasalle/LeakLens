@@ -1,0 +1,26 @@
+name: Detector proposal
+description: Propose a provider or organization-specific credential detector
+title: "detector: "
+labels: [enhancement, detector]
+body:
+  - type: input
+    id: provider
+    attributes:
+      label: Provider or credential family
+    validations:
+      required: true
+  - type: input
+    id: documentation
+    attributes:
+      label: Authoritative format documentation
+      description: Link official provider documentation, not a scraped pattern list.
+    validations:
+      required: true
+  - type: textarea
+    id: shape
+    attributes:
+      label: Redacted format and false-positive analysis
+      description: Do not include a full token-shaped example.
+    validations:
+      required: true
+

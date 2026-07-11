@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import fnmatch
 import os
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,7 +20,7 @@ class FileScanner:
     follow_symlinks: bool = False
     scan_hidden: bool = False
 
-    def scan_paths(self, paths: list[str | Path]) -> ScanResult:
+    def scan_paths(self, paths: Sequence[str | Path]) -> ScanResult:
         result = ScanResult()
         seen: set[tuple[int, int]] = set()
         for path in self.iter_files(paths):
@@ -46,7 +47,7 @@ class FileScanner:
                 result.errors.append(f"{path}: {exc}")
         return result
 
-    def iter_files(self, paths: list[str | Path]) -> list[Path]:
+    def iter_files(self, paths: Sequence[str | Path]) -> list[Path]:
         discovered: list[Path] = []
         for raw_path in paths:
             path = Path(raw_path)
@@ -77,7 +78,9 @@ class FileScanner:
     def _excluded(self, path: Path, *, directory: bool = False) -> bool:
         normalized = path.as_posix().lstrip("./") + ("/" if directory else "")
         name = path.name + ("/" if directory else "")
-        if not self.scan_hidden and any(part.startswith(".") for part in path.parts if part not in {".", ".."}):
+        if not self.scan_hidden and any(
+            part.startswith(".") for part in path.parts if part not in {".", ".."}
+        ):
             return True
         return any(
             fnmatch.fnmatch(normalized, pattern)
@@ -108,4 +111,3 @@ def decode_text(raw: bytes) -> str | None:
             return raw.decode("utf-8", errors="replace")
         except UnicodeError:
             return None
-
