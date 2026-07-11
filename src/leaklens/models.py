@@ -93,6 +93,34 @@ class ScanResult:
             "errors": self.errors,
         }
 
+    def extend(self, other: ScanResult) -> None:
+        """Merge another result without weakening deterministic ordering."""
+
+        self.findings.extend(other.findings)
+        self.errors.extend(other.errors)
+        for field_name in (
+            "files_scanned",
+            "bytes_scanned",
+            "files_skipped",
+            "binary_skipped",
+            "oversized_skipped",
+            "findings_suppressed",
+        ):
+            setattr(
+                self.stats,
+                field_name,
+                getattr(self.stats, field_name) + getattr(other.stats, field_name),
+            )
+        self.findings.sort(
+            key=lambda finding: (
+                finding.location.path,
+                finding.location.commit or "",
+                finding.location.line,
+                finding.location.column,
+                finding.rule_id,
+            )
+        )
+
 
 def fingerprint(rule_id: str, secret: str) -> str:
     """Return a stable, domain-separated digest without retaining the secret."""
