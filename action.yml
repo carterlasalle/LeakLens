@@ -1,0 +1,50 @@
+name: LeakLens secret scanner
+description: Offline secret detection with redacted SARIF, JSON, CSV, or table output
+author: Carter LaSalle
+branding:
+  icon: eye
+  color: purple
+inputs:
+  mode:
+    description: One of repo, staged, history, or paths
+    required: false
+    default: repo
+  paths:
+    description: Space-separated paths when mode is paths
+    required: false
+    default: .
+  format:
+    description: table, json, jsonl, csv, or sarif
+    required: false
+    default: sarif
+  output:
+    description: Optional output file
+    required: false
+    default: leaklens.sarif
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+    - name: Install LeakLens action
+      shell: bash
+      run: python -m pip install "$GITHUB_ACTION_PATH"
+    - name: Scan repository
+      shell: bash
+      env:
+        LEAKLENS_MODE: ${{ inputs.mode }}
+        LEAKLENS_PATHS: ${{ inputs.paths }}
+        LEAKLENS_FORMAT: ${{ inputs.format }}
+        LEAKLENS_OUTPUT: ${{ inputs.output }}
+      run: |
+        args=(scan --format "$LEAKLENS_FORMAT")
+        case "$LEAKLENS_MODE" in
+          repo|staged|history) args+=("--$LEAKLENS_MODE") ;;
+          paths) read -r -a path_args <<< "$LEAKLENS_PATHS"; args+=("${path_args[@]}") ;;
+          *) echo "Invalid LeakLens mode: $LEAKLENS_MODE" >&2; exit 2 ;;
+        esac
+        if [[ -n "$LEAKLENS_OUTPUT" ]]; then args+=(--output "$LEAKLENS_OUTPUT"); fi
+        leaklens "${args[@]}"
+

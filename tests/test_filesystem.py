@@ -12,8 +12,8 @@ class FileScannerTests(unittest.TestCase):
     def test_scans_text_but_skips_binary_excluded_and_oversized_files(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / "app.py").write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")
-            (root / "ignored.log").write_text('password = "A1!bB2@cC3#d"', encoding="utf-8")
+            (root / "app.py").write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
+            (root / "ignored.log").write_text('password = "A1!bB2@cC3#d"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
             (root / "image.bin").write_bytes(b"\x00secret\xff")
             (root / "huge.txt").write_text("x" * 100, encoding="utf-8")
             result = FileScanner(Scanner(), excludes=("*.log",), max_file_size=50).scan_paths([root])
@@ -29,4 +29,3 @@ class FileScannerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

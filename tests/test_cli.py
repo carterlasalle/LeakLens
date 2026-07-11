@@ -17,7 +17,7 @@ class CliTests(unittest.TestCase):
     def test_scan_exit_codes_and_json_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "app.py"
-            path.write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")
+            path.write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
                 code = main(["--no-baseline", "scan", str(path), "--format", "json"])
@@ -38,7 +38,7 @@ class CliTests(unittest.TestCase):
             root = Path(directory)
             source = root / "app.py"
             baseline = root / "baseline.json"
-            source.write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")
+            source.write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(main(["baseline", "create", str(source), "--output", str(baseline)]), 0)
                 code = main(["--baseline", str(baseline), "scan", str(source)])

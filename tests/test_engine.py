@@ -18,7 +18,7 @@ class EngineTests(unittest.TestCase):
         self.assertNotIn(token, str(finding.to_dict()))
 
     def test_detects_database_password_and_prioritizes_it(self) -> None:
-        text = 'DATABASE_URL="postgresql://admin:C0mpl3x-Pass@db.internal/app"\n'
+        text = 'DATABASE_URL="postgresql://admin:C0mpl3x-Pass@db.internal/app"\n'  # leaklens:allow -- synthetic test fixture
         finding = Scanner().scan_text(text).findings[0]
         self.assertEqual(finding.rule_id, "database-url")
         self.assertEqual(finding.severity, Severity.CRITICAL)
@@ -35,19 +35,19 @@ class EngineTests(unittest.TestCase):
         self.assertFalse(second.findings)
 
     def test_baseline_fingerprint_suppresses_exact_finding(self) -> None:
-        text = 'secret = "aB3!cD4@eF5#"'
+        text = 'secret = "aB3!cD4@eF5#"'  # leaklens:allow -- synthetic test fixture
         initial = Scanner().scan_text(text)
         fingerprint = initial.findings[0].fingerprint
         suppressed = Scanner(allowed_fingerprints=frozenset({fingerprint})).scan_text(text)
         self.assertFalse(suppressed.findings)
 
     def test_minimum_severity_filters_rules_before_matching(self) -> None:
-        text = 'api_key = "aB3!cD4@eF5#"'
+        text = 'api_key = "aB3!cD4@eF5#"'  # leaklens:allow -- synthetic test fixture
         result = Scanner(minimum_severity=Severity.CRITICAL).scan_text(text)
         self.assertFalse(result.findings)
 
     def test_finding_limit_stops_unbounded_result_growth(self) -> None:
-        text = "\n".join(f'password = "A{i:04d}!bB2@cC3#d"' for i in range(100))
+        text = "\n".join(f'password = "A{i:04d}!bB2@cC3#d"' for i in range(100))  # leaklens:allow -- synthetic test fixture
         result = Scanner(max_findings=7).scan_text(text)
         self.assertEqual(len(result.findings), 7)
         self.assertIn("finding limit 7", result.errors[0])

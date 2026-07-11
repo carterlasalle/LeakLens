@@ -24,10 +24,10 @@ class RepositoryScannerTests(unittest.TestCase):
         self.temporary.cleanup()
 
     def test_scans_tracked_and_untracked_worktree_files(self) -> None:
-        (self.root / "tracked.py").write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")
+        (self.root / "tracked.py").write_text('password = "Q9!wE8@rT7#y"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
         self._git("add", "tracked.py")
         self._git("commit", "-m", "base")
-        (self.root / "new.py").write_text('api_key = "Z8@xC7!vB6#n"', encoding="utf-8")
+        (self.root / "new.py").write_text('api_key = "Z8@xC7!vB6#n"', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
         result = self.repository.scan_worktree()
         self.assertEqual({finding.location.path for finding in result.findings}, {str(self.root / "tracked.py"), str(self.root / "new.py")})
 
@@ -35,7 +35,7 @@ class RepositoryScannerTests(unittest.TestCase):
         (self.root / "app.py").write_text("safe = True\n", encoding="utf-8")
         self._git("add", "app.py")
         self._git("commit", "-m", "base")
-        (self.root / "app.py").write_text('safe = True\npassword = "Q9!wE8@rT7#y"\n', encoding="utf-8")
+        (self.root / "app.py").write_text('safe = True\npassword = "Q9!wE8@rT7#y"\n', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
         self._git("add", "app.py")
         result = self.repository.scan_staged()
         self.assertEqual(len(result.findings), 1)
@@ -43,11 +43,11 @@ class RepositoryScannerTests(unittest.TestCase):
         self.assertEqual(result.findings[0].location.path, "app.py")
 
     def test_history_reports_first_commit_for_repeated_secret(self) -> None:
-        (self.root / "old.py").write_text('password = "Q9!wE8@rT7#y"\n', encoding="utf-8")
+        (self.root / "old.py").write_text('password = "Q9!wE8@rT7#y"\n', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
         self._git("add", "old.py")
         self._git("commit", "-m", "leak")
         first = self._git("rev-parse", "HEAD").strip()
-        (self.root / "old.py").write_text('password = "Q9!wE8@rT7#y"\nother = 1\n', encoding="utf-8")
+        (self.root / "old.py").write_text('password = "Q9!wE8@rT7#y"\nother = 1\n', encoding="utf-8")  # leaklens:allow -- synthetic test fixture
         self._git("add", "old.py")
         self._git("commit", "-m", "unrelated")
         result = self.repository.scan_history()

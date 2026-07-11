@@ -1,0 +1,19 @@
+[scan]
+minimum_severity = "high"
+max_file_size = 5242880
+history_max_commits = 5000
+exclude = ["tests/fixtures/**", "generated/**"]
+follow_symlinks = false
+scan_hidden = false
+
+[baseline]
+path = ".leaklens-baseline.json"
+
+[[rules]]
+id = "example-internal-token"
+title = "Example organization token"
+pattern = "(?P<secret>corp_[A-Za-z0-9]{32})"
+severity = "critical"
+minimum_entropy = 3.0
+tags = ["internal", "token"]
+keywords = ["corp_"]

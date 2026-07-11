@@ -1,0 +1,8 @@
+- id: leaklens
+  name: LeakLens secret scanner
+  description: Scan staged content for credentials without network access
+  entry: leaklens scan
+  language: python
+  pass_filenames: true
+  stages: [pre-commit]
+

@@ -21,9 +21,9 @@ class DetectorCatalogTests(unittest.TestCase):
             "npm-access-token": "npm_" + "A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8"[:36],
             "pypi-upload-token": "pypi-" + "A1b2C3d4_E5f6G7h8-I9j0K1l2M3n4O5p6Q7r8S9t0" * 2,
             "jwt": "eyJ" + "A1b2C3d4" + "." + "E5f6G7h8" + "." + "I9j0K1l2",
-            "database-url": "postgresql://admin:C0mpl3x-Pass@db.invalid/app",
-            "basic-auth-url": "https://admin:C0mpl3x-Pass@example.invalid/path",
-            "generic-secret": 'api_key = "Q9!wE8@rT7#y"',
+            "database-url": "postgresql://admin:C0mpl3x-Pass@db.invalid/app",  # leaklens:allow -- synthetic test fixture
+            "basic-auth-url": "https://admin:C0mpl3x-Pass@example.invalid/path",  # leaklens:allow -- synthetic test fixture
+            "generic-secret": 'api_key = "Q9!wE8@rT7#y"',  # leaklens:allow -- synthetic test fixture
         }
         scanner = Scanner()
         for expected, text in fixtures.items():
@@ -49,4 +49,3 @@ class DetectorCatalogTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
