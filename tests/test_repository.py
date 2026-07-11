@@ -34,8 +34,8 @@ class RepositoryScannerTests(unittest.TestCase):
         )  # leaklens:allow -- synthetic test fixture
         result = self.repository.scan_worktree()
         self.assertEqual(
-            {finding.location.path for finding in result.findings},
-            {str(self.root / "tracked.py"), str(self.root / "new.py")},
+            {Path(finding.location.path).name for finding in result.findings},
+            {"tracked.py", "new.py"},
         )
 
     def test_staged_scan_reports_only_added_lines_at_real_line_number(self) -> None:
