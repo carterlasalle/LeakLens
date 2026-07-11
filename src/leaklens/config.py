@@ -122,6 +122,7 @@ def _parse_rule(item: dict[str, Any]) -> Rule:
             tags=tuple(_strings(item.get("tags", ["custom"]), "rules.tags")),
             message=str(item.get("message", "Custom rule matched a potential credential")),
             reject_placeholders=bool(item.get("reject_placeholders", True)),
+            keywords=tuple(_strings(item.get("keywords", []), "rules.keywords")),
         )
         validate_custom_rule(rule)
         return rule
@@ -146,4 +147,3 @@ def _strings(value: object, name: str) -> list[str]:
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         raise ConfigError(f"{name} must be an array of strings")
     return value
-

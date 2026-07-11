@@ -17,6 +17,7 @@ class Scanner:
     rules: tuple[Rule, ...] = field(default_factory=builtin_rules)
     minimum_severity: Severity = Severity.LOW
     allowed_fingerprints: frozenset[str] = frozenset()
+    max_findings: int = 10_000
 
     def scan_text(
         self,
@@ -31,9 +32,13 @@ class Scanner:
         line_starts = [0]
         line_starts.extend(index + 1 for index, char in enumerate(text) if char == "\n")
         occupied: list[tuple[int, int]] = []
+        limit_reached = False
+        folded = text.casefold()
 
         for rule in self.rules:
             if rule.severity < self.minimum_severity:
+                continue
+            if rule.keywords and not any(keyword in folded for keyword in rule.keywords):
                 continue
             for match in rule.pattern.finditer(text):
                 start, end = match.span(rule.secret_group)
@@ -81,10 +86,17 @@ class Scanner:
                     entropy=round(shannon(secret), 3),
                     message=rule.message,
                     tags=rule.tags,
-                    _secret=secret,
                 )
                 result.findings.append(finding)
                 occupied.append((start, end))
+                if len(result.findings) >= self.max_findings:
+                    result.errors.append(
+                        f"finding limit {self.max_findings} reached in {path}; narrow the scan or raise the limit in code"
+                    )
+                    limit_reached = True
+                    break
+            if limit_reached:
+                break
 
         result.findings.sort(
             key=lambda item: (
@@ -96,4 +108,3 @@ class Scanner:
             )
         )
         return result
-

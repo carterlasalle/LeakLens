@@ -53,12 +53,10 @@ class Finding:
     entropy: float
     message: str
     tags: tuple[str, ...] = ()
-    _secret: str = field(default="", repr=False, compare=False)
 
     def to_dict(self) -> dict[str, Any]:
         result = asdict(self)
         result["severity"] = self.severity.label()
-        result.pop("_secret", None)
         return result
 
 

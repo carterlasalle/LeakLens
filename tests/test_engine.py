@@ -46,7 +46,12 @@ class EngineTests(unittest.TestCase):
         result = Scanner(minimum_severity=Severity.CRITICAL).scan_text(text)
         self.assertFalse(result.findings)
 
+    def test_finding_limit_stops_unbounded_result_growth(self) -> None:
+        text = "\n".join(f'password = "A{i:04d}!bB2@cC3#d"' for i in range(100))
+        result = Scanner(max_findings=7).scan_text(text)
+        self.assertEqual(len(result.findings), 7)
+        self.assertIn("finding limit 7", result.errors[0])
+
 
 if __name__ == "__main__":
     unittest.main()
-

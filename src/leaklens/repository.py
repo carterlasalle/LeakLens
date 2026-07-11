@@ -35,7 +35,7 @@ class RepositoryScanner:
         return self.file_scanner.scan_paths(paths)
 
     def scan_staged(self) -> ScanResult:
-        patch = self._git(
+        raw_patch = self._git(
             "diff",
             "--cached",
             "--no-ext-diff",
@@ -43,7 +43,13 @@ class RepositoryScanner:
             "--unified=0",
             "--diff-filter=ACMR",
             "--",
-        ).decode("utf-8", errors="replace")
+        )
+        patch_limit = max(16 * 1024 * 1024, self.file_scanner.max_file_size * 20)
+        if len(raw_patch) > patch_limit:
+            raise GitError(
+                f"staged diff is {len(raw_patch)} bytes, above safety limit {patch_limit}; scan files directly"
+            )
+        patch = raw_patch.decode("utf-8", errors="replace")
         result = ScanResult()
         current_path = "<staged>"
         new_line = 0
@@ -66,7 +72,7 @@ class RepositoryScanner:
         return result
 
     def scan_history(self, *, max_commits: int = 1_000, since: str | None = None) -> ScanResult:
-        arguments = ["rev-list", "--all", "--reverse"]
+        arguments = ["rev-list", "--all", "--reverse", f"--max-count={max_commits + 1}"]
         if since:
             arguments.append(f"--since={since}")
         commits = [item for item in self._git(*arguments).decode().splitlines() if item]
@@ -92,13 +98,15 @@ class RepositoryScanner:
                     continue
                 path = raw_name.decode("utf-8", errors="surrogateescape")
                 try:
+                    size_text = self._git("cat-file", "-s", f"{commit}:{path}").decode().strip()
+                    size = int(size_text)
+                    if size > self.file_scanner.max_file_size:
+                        result.stats.files_skipped += 1
+                        result.stats.oversized_skipped += 1
+                        continue
                     raw = self._git("show", f"{commit}:{path}")
-                except GitError as exc:
+                except (GitError, ValueError) as exc:
                     result.errors.append(str(exc))
-                    continue
-                if len(raw) > self.file_scanner.max_file_size:
-                    result.stats.files_skipped += 1
-                    result.stats.oversized_skipped += 1
                     continue
                 text = decode_text(raw)
                 if text is None:
@@ -157,8 +165,6 @@ def _shift_lines(result: ScanResult, offset: int) -> None:
             entropy=finding.entropy,
             message=finding.message,
             tags=finding.tags,
-            _secret=finding._secret,
         )
         for finding in result.findings
     ]
-
