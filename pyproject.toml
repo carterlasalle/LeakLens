@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.24"]
+requires = ["hatchling>=1.31.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -28,11 +28,11 @@ Issues = "https://github.com/carterlasalle/LeakLens/issues"
 
 [project.optional-dependencies]
 dev = [
-  "build>=1.2",
-  "mypy>=1.10",
-  "pytest>=8.2",
-  "pytest-cov>=5.0",
-  "ruff>=0.5",
+  "build>=1.5.1",
+  "mypy>=2.2.0",
+  "pytest>=9.1.1",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.15.21",
 ]
 
 [tool.hatch.build.targets.wheel]
