@@ -37,14 +37,3 @@ jobs:
           name: leaklens-security-report
           path: leaklens.sarif
           if-no-files-found: error
-
-  dependency-review:
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
-
