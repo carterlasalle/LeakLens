@@ -32,7 +32,7 @@ jobs:
           uv run leaklens --no-baseline scan --repo --format sarif --output leaklens.sarif
       - name: Upload security report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: leaklens-security-report
           path: leaklens.sarif
