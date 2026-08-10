@@ -1,0 +1,33 @@
+name: Refresh UV Lock
+
+on:
+  push:
+    branches:
+      - dependabot/pip/development-dependencies-c5b98f1c82
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - name: Regenerate UV lockfile
+        run: uv lock
+      - name: Commit lockfile if changed
+        shell: bash
+        run: |
+          if git diff --quiet -- uv.lock; then
+            echo "uv.lock is already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uv.lock
+          git commit -m "chore: regenerate uv lock"
+          git push
