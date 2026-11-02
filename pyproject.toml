@@ -28,7 +28,7 @@ Issues = "https://github.com/carterlasalle/LeakLens/issues"
 
 [project.optional-dependencies]
 dev = [
-  "build>=1.5.1",
+  "build>=1.6.1",
   "mypy>=2.3.0",
   "pytest>=9.1.1",
   "pytest-cov>=7.1.0",
